@@ -33,39 +33,39 @@ class cifar100vgg:
         model.add(Conv2D(64, (3, 3), padding='same',
                          input_shape=self.x_shape,kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_1'))
         model.add(Dropout(0.3))
 
         model.add(Conv2D(64, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_2'))
 
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_3'))
         model.add(Dropout(0.4))
 
         model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_4'))
 
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
         model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_5'))
         model.add(Dropout(0.4))
 
         model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_6'))
         model.add(Dropout(0.4))
 
         model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
         model.add(Activation('relu'))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(name='bn_7'))
 
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
