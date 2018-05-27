@@ -36,6 +36,9 @@ def transfer_weights(source_model, replace_fc=True, suffix=''):
     #     model.add(layer)
     source_model.model.layers.pop()
     source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
     model = source_model.model
 
     if replace_fc is True:
@@ -94,7 +97,8 @@ def embedding(data, source_model):
 
     batch_size = 128
     model = transfer_weights(source_model, replace_fc=False, suffix='emb')
-    X_train_features = model._predict(X_train)
+    X_train_features = model.predict(X_train)
+    model.summary()
     import ipdb; ipdb.set_trace()
     # hist = model.fit(X_train,
     #                  y_train,
