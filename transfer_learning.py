@@ -39,6 +39,7 @@ def transfer_weights(source_model, replace_fc=True, suffix=''):
     source_model.model.layers.pop()
     source_model.model.layers.pop()
     source_model.model.layers.pop()
+    source_model.model.layers.pop()
     model = source_model.model
 
     if replace_fc is True:
