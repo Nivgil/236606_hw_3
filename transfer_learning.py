@@ -10,7 +10,7 @@ CLASSES = 10
 EPOCHS = 5
 
 
-def plot_history(history, dir_path, baseline = None):
+def plot_history(history, dir_path, baseline=None):
     his = history.history
     val_acc = his['val_acc']
     train_acc = his['acc']
@@ -28,18 +28,18 @@ def plot_history(history, dir_path, baseline = None):
     plt.show()
 
 
-def transfer_weights(source_model):
-
+def transfer_weights(source_model, replace_fc=True):
     model = keras.models.Sequential()
     for layer in source_model.model.layers[:-2]:
         layer.trainable = False
         model.add(layer)
 
-    model.add(keras.layers.Dense(CLASSES, activation='softmax'))
+    if replace_fc is True:
+        model.add(keras.layers.Dense(CLASSES, activation='softmax'))
 
     model.compile(loss='categorical_crossentropy',
                   optimizer=keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True),
-                  metrics = ['accuracy'])
+                  metrics=['accuracy'])
 
     return model
 
@@ -55,31 +55,48 @@ def load_data():
     return x_train, y_train, x_valid, y_valid, x_test, y_test
 
 
-def fine_tuning(data, model):
-
+def fine_tuning(data, source_model, batch_size):
     X_train, y_train, X_test, y_test = data
+
+    model = transfer_weights(source_model)
 
     hist = model.fit(X_train,
                      y_train,
                      epochs=EPOCHS,
                      validation_data=(X_test, y_test),
-                     batch_size=32,
+                     batch_size=batch_size,
                      )
 
+    return hist
 
-def fine_tuning_tests(data, model):
 
+def fine_tuning_tests(data, source_model):
     X_train, y_train, X_test, y_test = data
 
     histories = {}
 
-    for size in [100, 1000, 10000]:
+    for train_size, batch_size in [(100, 1), (1000, 32), (10000, 64)]:
         X_train_small, _, y_train_small, _ = train_test_split(X_train, y_train,
-                                                              train_size=size, random_state=42, stratify=y_train)
+                                                              train_size=train_size, random_state=42, stratify=y_train)
 
-        histories[size] = fine_tuning((X_train_small, y_train_small, X_test[:1000], y_test[:1000]), model)
+        histories[train_size] = fine_tuning((X_train_small, y_train_small, X_test, y_test), source_model, batch_size)
 
     return
+
+
+def embedding(data, source_model):
+    X_train, y_train, X_test, y_test = data
+
+    batch_size = 128
+    model = transfer_weights(source_model, replace_fc=False)
+    X_train_features = model._predict(X_train)
+    import ipdb; ipdb.set_trace()
+    # hist = model.fit(X_train,
+    #                  y_train,
+    #                  epochs=EPOCHS,
+    #                  validation_data=(X_test, y_test),
+    #                  batch_size=batch_size,
+    #                  )
 
 
 def main():
@@ -92,6 +109,7 @@ def main():
                                source_model.normalize_production(x_test)
 
     fine_tuning_tests((x_train, y_train, x_test, y_test), model)
+
 
 if __name__ == '__main__':
     main()
