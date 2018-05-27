@@ -37,7 +37,7 @@ def transfer_weights(source_model, replace_fc=True, suffix=''):
     #     model.add(layer)
     source_model.model.layers.pop()
     source_model.model.layers.pop()
-    model = source_model
+    model = source_model.model
 
     if replace_fc is True:
         model.add(keras.layers.Dense(CLASSES, activation='softmax'))
