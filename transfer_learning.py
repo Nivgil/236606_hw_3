@@ -30,6 +30,7 @@ def plot_history(history, dir_path, baseline=None):
 
 def transfer_weights(source_model, replace_fc=True):
     model = keras.models.Sequential()
+    import ipdb; ipdb.set_trace()
     for layer in source_model.model.layers[:-2]:
         layer.trainable = False
         model.add(layer)
