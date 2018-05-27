@@ -104,7 +104,7 @@ def main():
     x_train, y_train, x_valid, y_valid, x_test, y_test = load_data()
 
     source_model = cifar100vgg(train=False)
-    model = transfer_weights(source_model)
+    # model = transfer_weights(source_model)
     x_train, x_valid, x_test = source_model.normalize_production(x_train), \
                                source_model.normalize_production(x_valid), \
                                source_model.normalize_production(x_test)
