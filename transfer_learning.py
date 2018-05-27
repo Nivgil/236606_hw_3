@@ -50,9 +50,10 @@ def load_data():
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
 
-    x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.1)
+    # x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.1)
 
-    return x_train, y_train, x_valid, y_valid, x_test, y_test
+    # return x_train, y_train, x_valid, y_valid, x_test, y_test
+    return x_train, y_train, x_test, y_test, x_test, y_test
 
 
 def fine_tuning(data, source_model, batch_size):
@@ -108,7 +109,8 @@ def main():
                                source_model.normalize_production(x_valid), \
                                source_model.normalize_production(x_test)
 
-    fine_tuning_tests((x_train, y_train, x_test, y_test), model)
+    # fine_tuning_tests((x_train, y_train, x_test, y_test), model)
+    embedding((x_train, y_train, x_test, y_test), source_model)
 
 
 if __name__ == '__main__':
