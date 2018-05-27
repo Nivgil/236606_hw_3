@@ -31,10 +31,13 @@ def plot_history(history, dir_path, baseline=None):
 def transfer_weights(source_model, replace_fc=True, suffix=''):
     model = keras.models.Sequential()
     import ipdb; ipdb.set_trace()
-    for layer in source_model.model.layers[:-2]:
-        layer.trainable = False
-        layer.name = '%s_%s' % (layer.name, suffix)
-        model.add(layer)
+    # for layer in source_model.model.layers[:-2]:
+    #     layer.trainable = False
+    #     layer.name = '%s_%s' % (layer.name, suffix)
+    #     model.add(layer)
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    model = source_model
 
     if replace_fc is True:
         model.add(keras.layers.Dense(CLASSES, activation='softmax'))
@@ -91,7 +94,7 @@ def embedding(data, source_model):
     X_train, y_train, X_test, y_test = data
 
     batch_size = 128
-    model = transfer_weights(source_model, replace_fc=False, suffix='emb')
+    model = transfer_weights(source_model, replace_fc=True, suffix='emb')
     X_train_features = model._predict(X_train)
     import ipdb; ipdb.set_trace()
     # hist = model.fit(X_train,
