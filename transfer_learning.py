@@ -31,20 +31,11 @@ def plot_history(history, dir_path, baseline=None):
 
 def transfer_weights(source_model, replace_fc=True, suffix=''):
     model = keras.models.Sequential()
-    # for layer in source_model.model.layers[:-2]:
-    #     layer.trainable = False
-    #     layer.name = '%s_%s' % (layer.name, suffix)
-    #     model.add(layer)
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
 
-    model = source_model.model
-    model.outputs = [model.layers[-1].output]
-    model.layers[-1].outbound_nodes = []
+    for layer in source_model.model.layers[:-2]:
+        layer.trainable = False
+        #layer.name = '%s_%s' % (layer.name, suffix)
+        model.add(layer)
 
     if replace_fc is True:
         model.add(keras.layers.Dense(CLASSES, activation='softmax'))
