@@ -3,6 +3,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.neighbors import NearestNeighbors
 
 from cifar100vgg import cifar100vgg
 
@@ -40,7 +41,10 @@ def transfer_weights(source_model, replace_fc=True, suffix=''):
     source_model.model.layers.pop()
     source_model.model.layers.pop()
     source_model.model.layers.pop()
+
     model = source_model.model
+    model.outputs = [model.layers[-1].output]
+    model.layers[-1].outbound_nodes = []
 
     if replace_fc is True:
         model.add(keras.layers.Dense(CLASSES, activation='softmax'))
@@ -96,17 +100,32 @@ def fine_tuning_tests(data, source_model):
 def embedding(data, source_model):
     X_train, y_train, X_test, y_test = data
 
-    batch_size = 128
-    model = transfer_weights(source_model, replace_fc=False, suffix='emb')
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+    source_model.model.layers.pop()
+
+    model = source_model.model
+    model.outputs = [model.layers[-1].output]
+    model.layers[-1].outbound_nodes = []
+
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True),
+                  metrics=['accuracy'])
+
     X_train_features = model.predict(X_train)
     model.summary()
+    print(X_train_features.shape)
+    nbrs = NearestNeighbors(n_neighbors=5, algorithm='ball_tree').fit(X_train_features)
+    X_test_features = model.predict(X_test)
+    distances, indices = nbrs.kneighbors(X_test_features)
+    y_hat_test = y_train[indices].sum(1).argmax(1)
+    y_hat_labels = np.zeros(y_test.shape)
+    for i in range(0, y_hat_test):
+        y_hat_labels[i][int(y_hat_test[i])] = 1
     import ipdb; ipdb.set_trace()
-    # hist = model.fit(X_train,
-    #                  y_train,
-    #                  epochs=EPOCHS,
-    #                  validation_data=(X_test, y_test),
-    #                  batch_size=batch_size,
-    #                  )
 
 
 def main():
