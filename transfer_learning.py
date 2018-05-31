@@ -3,7 +3,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KNeighborsClassifier
 
 from cifar100vgg import cifar100vgg
 
@@ -34,7 +34,7 @@ def transfer_weights(source_model, replace_fc=True, suffix=''):
 
     for layer in source_model.model.layers[:-2]:
         layer.trainable = False
-        #layer.name = '%s_%s' % (layer.name, suffix)
+        # layer.name = '%s_%s' % (layer.name, suffix)
         model.add(layer)
 
     if replace_fc is True:
@@ -53,10 +53,7 @@ def load_data():
     y_train = keras.utils.to_categorical(y_train, 10)
     y_test = keras.utils.to_categorical(y_test, 10)
 
-    # x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.1)
-
-    # return x_train, y_train, x_valid, y_valid, x_test, y_test
-    return x_train, y_train, x_test, y_test, x_test, y_test
+    return x_train, y_train, x_test, y_test
 
 
 def fine_tuning(data, source_model, batch_size):
@@ -88,48 +85,43 @@ def fine_tuning_tests(data, source_model):
     return
 
 
-def embedding(data, source_model):
+def embedding_tests(data, source_model):
     X_train, y_train, X_test, y_test = data
+    y_train = np.argmax(y_train, 1)
+    y_test = np.argmax(y_test, 1)
 
     source_model.model.layers.pop()
     source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-    source_model.model.layers.pop()
-
     model = source_model.model
     model.outputs = [model.layers[-1].output]
     model.layers[-1].outbound_nodes = []
 
-    model.compile(loss='categorical_crossentropy',
-                  optimizer=keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True),
-                  metrics=['accuracy'])
-
-    X_train_features = model.predict(X_train)
-    model.summary()
-    print(X_train_features.shape)
-    nbrs = NearestNeighbors(n_neighbors=5, algorithm='ball_tree').fit(X_train_features)
     X_test_features = model.predict(X_test)
-    distances, indices = nbrs.kneighbors(X_test_features)
-    y_hat_test = y_train[indices].sum(1).argmax(1)
-    y_hat_labels = np.zeros(y_test.shape)
-    for i in range(0, y_hat_test):
-        y_hat_labels[i][int(y_hat_test[i])] = 1
-    import ipdb; ipdb.set_trace()
+    X_train_features = model.predict(X_train)
+    scores = {}
+
+    for train_size in (100, 1000, 10000):
+        X_train_small, _, y_train_small, _ = train_test_split(X_train_features, y_train,
+                                                              train_size=train_size, random_state=42, stratify=y_train)
+        knn_classifier = KNeighborsClassifier(n_neighbors=6)
+        knn_classifier.fit(X_train_small, y_train_small)
+        accuracy = knn_classifier.score(X_test_features, y_test)
+        print(
+            'training set size {} samples,\t\tknn classification accuracy - [{:.3f}%]'.format(len(X_train_small),
+                                                                                              accuracy * 100))
+        scores[train_size] = accuracy
+
+    return scores
 
 
 def main():
-    x_train, y_train, x_valid, y_valid, x_test, y_test = load_data()
+    x_train, y_train, x_test, y_test = load_data()
 
     source_model = cifar100vgg(train=False)
-    # model = transfer_weights(source_model)
-    x_train, x_valid, x_test = source_model.normalize_production(x_train), \
-                               source_model.normalize_production(x_valid), \
-                               source_model.normalize_production(x_test)
+    x_train = source_model.normalize_production(x_train)
+    x_test = source_model.normalize_production(x_test)
 
-    # fine_tuning_tests((x_train, y_train, x_test, y_test), model)
-    embedding((x_train, y_train, x_test, y_test), source_model)
+    embedding_tests((x_train, y_train, x_test, y_test), source_model)
 
 
 if __name__ == '__main__':
